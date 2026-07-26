@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Anotador de Chinchón - Cuaderno</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colores de tinta de lapicera */
+            --pen-blue: #1e40af;
+            --pen-black: #1a1a1a;
+            --pen-red: #dc2626;
+            --pen-green: #166534;
+            /* Color de la hoja y las líneas */
+            --paper-bg: #fdfbf7; 
+            --paper-line: #93c5fd; 
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background-color: var(--paper-bg);
+            /* Líneas de cuaderno continuas */
+            background-image: repeating-linear-gradient(transparent, transparent 29px, var(--paper-line) 29px, var(--paper-line) 30px);
+            background-attachment: local;
+            color: var(--pen-black);
+            margin: 0;
+            padding: 10px 10px 10px 50px; 
+            text-align: center;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Margen rojo de cuaderno */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 40px;
+            width: 2px;
+            height: 100%;
+            background-color: rgba(220, 38, 38, 0.6);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-top: 10px;
+            margin-bottom: 25px;
+            color: var(--pen-blue);
+            text-decoration: underline;
+        }
+
+        /* Estilos generales de inputs */
+        input[type="text"], input[type="number"] {
+            padding: 5px 8px;
+            border: 1px solid var(--pen-blue);
+            border-radius: 0;
+            font-size: 1.2rem;
+            width: 100%;
+            box-sizing: border-box;
+            background: transparent;
+            font-family: 'Patrick Hand', cursive;
+            color: var(--pen-black);
+            outline: none;
+        }
+
+        input::placeholder {
+            color: rgba(30, 64, 175, 0.4);
+        }
+
+        /* Botones estilo lapicera */
+        button {
+            padding: 5px 12px;
+            border: 1px solid var(--pen-blue);
+            border-radius: 2px;
+            background: transparent;
+            color: var(--pen-blue);
+            font-family: 'Patrick Hand', cursive;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: opacity 0.2s;
+        }
+
+        button:active { opacity: 0.5; }
+        button.success { border-color: var(--pen-green); color: var(--pen-green); }
+        button.danger { border-color: var(--pen-red); color: var(--pen-red); width: 100%; margin-top: 5px; }
+        
+        button.small {
+            padding: 2px 6px;
+            font-size: 1rem;
+            border-color: var(--pen-black);
+            color: var(--pen-black);
+            width: auto;
+            display: inline-block;
+        }
+
+        /* Diseño de columnas transparentes */
+        .board {
+            display: flex;
+            gap: 0; 
+            overflow-x: auto;
+            padding-bottom: 15px;
+            align-items: stretch; /* Hace que todas las columnas lleguen al mismo alto */
+            border-left: 2px solid var(--pen-blue); 
+        }
+
+        .player-col {
+            background: transparent;
+            min-width: 120px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid var(--pen-blue); 
+            border-bottom: 2px solid var(--pen-blue); 
+            position: relative;
+        }
+
+        .player-name {
+            background: transparent;
+            color: var(--pen-blue);
+            padding: 8px;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--pen-blue);
+            min-height: 25px;
+        }
+
+        .hands-list {
+            display: flex;
+            flex-direction: column;
+            min-height: 90px;
+            padding: 5px 0;
+            flex-grow: 1; /* Empuja los controles hacia abajo */
+        }
+
+        .hand-row {
+            padding: 2px 5px;
+            height: 26px; 
+            font-size: 1.3rem;
+            color: var(--pen-black);
+        }
+
+        .hand-row.negative {
+            color: var(--pen-green);
+            font-weight: bold;
+        }
+
+        .hand-row.reenganche {
+            color: var(--pen-blue);
+            font-weight: bold;
+            font-size: 1rem;
+            border: 1px solid var(--pen-blue);
+            display: inline-block;
+            margin: 0 5px;
+            padding: 0 3px;
+            transform: rotate(-2deg); 
+        }
+
+        .total-box {
+            border-top: 3px double var(--pen-blue); 
+            padding: 10px 5px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--pen-black);
+            background: transparent;
+        }
+
+        .total-box::before {
+            content: 'Total: ';
+            font-size: 1.1rem;
+            display: block;
+            font-weight: normal;
+            color: var(--pen-blue);
+        }
+
+        /* Controles de entrada de datos (transparentes) */
+        .controls {
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-top: 1px dashed var(--pen-blue);
+            background: transparent;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .controls-row input {
+            padding: 5px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .controls-row button {
+            padding: 5px;
+            flex: 1;
+            font-size: 1.2rem;
+        }
+
+        /* Estilos de eliminación */
+        .eliminated .player-name {
+            color: var(--pen-red);
+            text-decoration: line-through;
+        }
+
+        .eliminated .total-box {
+            color: var(--pen-red);
+            text-decoration: line-through;
+        }
+
+        .status-msg {
+            color: var(--pen-red);
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 5px 0;
+            transform: rotate(-5deg);
+        }
+
+        /* Barra de desplazamiento */
+        .board::-webkit-scrollbar {
+            height: 8px;
+        }
+        .board::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .board::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.3); 
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chinchón</h1>
+        <!-- Ya no está el panel de agregar jugadores acá arriba -->
+        <div class="board" id="board"></div>
+    </div>
+
+    <script>
+        let players = [];
+        const MAX_SCORE = 100; 
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') addPlayer();
+        }
+
+        function addPlayer() {
+            const input = document.getElementById('newPlayerName');
+            const name = input.value.trim();
+            if (name) {
+                players.push({ name, history: [], eliminated: false });
+                render();
+            }
+        }
+
+        function getScore(player) {
+            return player.history.reduce((total, points) => total + (typeof points === 'number' ? points : 0), 0);
+        }
+
+        function addPoints(index) {
+            const input = document.getElementById(`score-${index}`);
+            const points = parseInt(input.value);
+            if (!isNaN(points)) {
+                players[index].history.push(points);
+                input.value = '';
+                checkElimination(index);
+                render();
+            }
+        }
+
+        function deductTen(index) {
+            players[index].history.push(-10);
+            checkElimination(index);
+            render();
+        }
+
+        function undoLast(index) {
+            if (players[index].history.length > 0) {
+                players[index].history.pop();
+                checkElimination(index);
+                render();
+            }
+        }
+
+        function checkElimination(index) {
+            const currentScore = getScore(players[index]);
+            players[index].eliminated = currentScore >= MAX_SCORE;
+        }
+
+        function reenganchar(index) {
+            const activePlayers = players.filter(p => !p.eliminated);
+            if (activePlayers.length > 0) {
+                const maxScore = Math.max(...activePlayers.map(p => getScore(p)));
+                players[index].history = [{ type: 'reenganche', val: maxScore }];
+                players[index].eliminated = false;
+                render();
+            } else {
+                alert("No hay otros jugadores activos para reenganchar.");
+            }
+        }
+
+        function render() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            // Dibujar a los jugadores actuales
+            players.forEach((player, index) => {
+                const currentScore = getScore(player);
+                const col = document.createElement('div');
+                col.className = `player-col ${player.eliminated ? 'eliminated' : ''}`;
+                
+                let handsHtml = '';
+                player.history.forEach((pts) => {
+                    if (typeof pts === 'object' && pts.type === 'reenganche') {
+                        handsHtml += `<div class="hand-row"><span class="reenganche">Reeng (${pts.val})</span></div>`;
+                    } else {
+                        let rowClass = 'hand-row';
+                        if (pts < 0) rowClass += ' negative';
+                        handsHtml += `<div class="${rowClass}">${pts}</div>`;
+                    }
+                });
+
+                const linesToFill = 5 - player.history.length;
+                if (linesToFill > 0) {
+                    for(let i=0; i<linesToFill; i++) {
+                        handsHtml += `<div class="hand-row"></div>`;
+                    }
+                }
+
+                let content = `
+                    <div class="player-name">${player.name}</div>
+                    
+                    <div class="hands-list">
+                        ${handsHtml}
+                    </div>
+
+                    <div class="total-box">
+                        ${currentScore}
+                    </div>
+                `;
+
+                content += `<div class="controls">`;
+                
+                if (!player.eliminated) {
+                    content += `
+                        <div class="controls-row">
+                            <input type="number" id="score-${index}" placeholder="Pts" inputmode="numeric">
+                            <button class="success" onclick="addPoints(${index})">+</button>
+                        </div>
+                        <div class="controls-row" style="margin-top: 3px;">
+                            <button onclick="deductTen(${index})">-10</button>
+                            ${player.history.length > 0 ? `<button class="small" onclick="undoLast(${index})" title="Deshacer última mano">Borrar</button>` : ''}
+                        </div>
+                    `;
+                } else {
+                    content += `
+                        <div class="status-msg">Tachado!</div>
+                        <button class="danger" onclick="reenganchar(${index})">Reenganchar</button>
+                    `;
+                }
+
+                content += `</div>`; 
+                
+                col.innerHTML = content;
+                board.appendChild(col);
+            });
+
+            // --- NUEVO: Columna final para agregar jugador ---
+            const addCol = document.createElement('div');
+            addCol.className = 'player-col';
+            // Bordes punteados para que parezca un espacio vacío esperando ser llenado
+            addCol.style.borderRight = '2px dashed var(--pen-blue)';
+            addCol.style.borderBottom = '2px dashed var(--pen-blue)';
+            addCol.style.minWidth = '130px';
+            
+            addCol.innerHTML = `
+                <div class="player-name" style="padding: 8px 5px; border-bottom: 2px dashed var(--pen-blue);">
+                    <input type="text" id="newPlayerName" placeholder="Nombre..." onkeypress="handleEnter(event)" style="border: none; text-align: center; padding: 0; width: 100%;">
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 10px;">
+                    <button onclick="addPlayer()" style="font-size: 2rem; padding: 0; border-style: dashed; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;" title="Agregar jugador">+</button>
+                    
+                    ${players.length === 0 ? '<p style="color: var(--pen-blue); font-size: 1.1rem; opacity: 0.7; margin-top: 15px; transform: rotate(-5deg);">Anotá los nombres acá</p>' : ''}
+                </div>
+            `;
+            board.appendChild(addCol);
+        }
+
+        // Primer render
+        render();
+    </script>
+</body>
+</html>
