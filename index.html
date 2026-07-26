@@ -107,13 +107,13 @@
             gap: 0; 
             overflow-x: auto;
             padding-bottom: 15px;
-            align-items: stretch; /* Hace que todas las columnas lleguen al mismo alto */
+            align-items: stretch; 
             border-left: 2px solid var(--pen-blue); 
         }
 
         .player-col {
             background: transparent;
-            min-width: 120px;
+            min-width: 130px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -125,12 +125,22 @@
         .player-name {
             background: transparent;
             color: var(--pen-blue);
-            padding: 8px;
+            padding: 6px 8px;
             font-weight: bold;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             text-transform: uppercase;
             border-bottom: 2px solid var(--pen-blue);
             min-height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .player-name span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .hands-list {
@@ -138,7 +148,7 @@
             flex-direction: column;
             min-height: 90px;
             padding: 5px 0;
-            flex-grow: 1; /* Empuja los controles hacia abajo */
+            flex-grow: 1; 
         }
 
         .hand-row {
@@ -181,7 +191,7 @@
             color: var(--pen-blue);
         }
 
-        /* Controles de entrada de datos (transparentes) */
+        /* Controles de entrada de datos */
         .controls {
             padding: 10px 8px;
             display: flex;
@@ -209,7 +219,7 @@
         }
 
         /* Estilos de eliminación */
-        .eliminated .player-name {
+        .eliminated .player-name span {
             color: var(--pen-red);
             text-decoration: line-through;
         }
@@ -243,7 +253,6 @@
 <body>
     <div class="container">
         <h1>Chinchón</h1>
-        <!-- Ya no está el panel de agregar jugadores acá arriba -->
         <div class="board" id="board"></div>
     </div>
 
@@ -260,6 +269,27 @@
             const name = input.value.trim();
             if (name) {
                 players.push({ name, history: [], eliminated: false });
+                render();
+            }
+        }
+
+        // --- NUEVO: Modificar nombre de jugador ---
+        function editPlayerName(index) {
+            const currentName = players[index].name;
+            const newName = prompt("Modificar nombre del jugador:", currentName);
+            if (newName !== null) {
+                const trimmed = newName.trim();
+                if (trimmed !== "") {
+                    players[index].name = trimmed;
+                    render();
+                }
+            }
+        }
+
+        // --- NUEVO: Eliminar jugador ---
+        function deletePlayer(index) {
+            if (confirm(`¿Querés eliminar a ${players[index].name} de la partida?`)) {
+                players.splice(index, 1);
                 render();
             }
         }
@@ -314,7 +344,6 @@
             const board = document.getElementById('board');
             board.innerHTML = '';
             
-            // Dibujar a los jugadores actuales
             players.forEach((player, index) => {
                 const currentScore = getScore(player);
                 const col = document.createElement('div');
@@ -339,7 +368,10 @@
                 }
 
                 let content = `
-                    <div class="player-name">${player.name}</div>
+                    <div class="player-name">
+                        <span>${player.name}</span>
+                        <button class="small" onclick="editPlayerName(${index})" title="Editar nombre" style="font-size:0.8rem; padding:1px 4px;">✏️</button>
+                    </div>
                     
                     <div class="hands-list">
                         ${handsHtml}
@@ -370,22 +402,26 @@
                     `;
                 }
 
+                // Botón general de eliminar jugador debajo de todo en la columna
+                content += `
+                    <button class="small" onclick="deletePlayer(${index})" title="Eliminar jugador" style="margin-top: 8px; border-color: var(--pen-red); color: var(--pen-red); font-size: 0.9rem; padding: 2px;">🗑️ Eliminar</button>
+                `;
+
                 content += `</div>`; 
                 
                 col.innerHTML = content;
                 board.appendChild(col);
             });
 
-            // --- NUEVO: Columna final para agregar jugador ---
+            // Columna final para agregar jugador
             const addCol = document.createElement('div');
             addCol.className = 'player-col';
-            // Bordes punteados para que parezca un espacio vacío esperando ser llenado
             addCol.style.borderRight = '2px dashed var(--pen-blue)';
             addCol.style.borderBottom = '2px dashed var(--pen-blue)';
             addCol.style.minWidth = '130px';
             
             addCol.innerHTML = `
-                <div class="player-name" style="padding: 8px 5px; border-bottom: 2px dashed var(--pen-blue);">
+                <div class="player-name" style="padding: 8px 5px; border-bottom: 2px dashed var(--pen-blue); justify-content: center;">
                     <input type="text" id="newPlayerName" placeholder="Nombre..." onkeypress="handleEnter(event)" style="border: none; text-align: center; padding: 0; width: 100%;">
                 </div>
                 <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 10px;">
