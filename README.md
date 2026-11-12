@@ -6,7 +6,7 @@ Web app ligera creada para llevar la cuenta de los puntos desde el celular sin t
 
 ## 🎯 Problema que resuelve (y el que no)
 * ✅ **Resuelto:** Automatizar la suma de puntos ronda a ronda, controlar los límites para no irse al mazo y gestionar los reenganches sin discutir por cuentas mal hechas.
-* ❌ **Pendiente para la versión 2.0:** Encontrar un algoritmo que evite que mi novia me gane casi siempre.
+* ❌ **Pendiente para la versión 2.0:** Encontrar un algoritmo que evite que la Jefa me gane casi siempre.
 
 ## 🛠️ Stack
 * HTML5 / CSS3 / JavaScript
